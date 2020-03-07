@@ -1,0 +1,45 @@
+server:
+  port: 8085
+
+postgresql:
+  host: localhost
+  port: 5432
+  defaultschema: public
+  database: userdb
+  username: west223
+  password: westwest223
+
+security:
+  jwt:
+    token:
+      secret-key: west223
+      expire-length: 86400000 #1сутки
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${postgresql.host}:${postgresql.port}/${postgresql.database}
+    driver-class-name: org.postgresql.Driver
+    username: ${postgresql.username}
+    password: ${postgresql.password}
+  liquibase:
+    change-log: classpath:/liquibase/root-changelog.xml
+    contexts: schema
+    default-schema: ${postgresql.defaultschema}
+    enabled: true
+    url: jdbc:postgresql://${postgresql.host}:${postgresql.port}/${postgresql.database}
+    user: ${postgresql.username}
+    password: ${postgresql.password}
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQL95Dialect
+    show-sql: false
+    generate-ddl: true
+    hibernate:
+      ddl-auto: none
+      use-new-id-generator-mappings: true
+      naming:
+        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+    properties:
+      hibernate:
+        temp:
+          use_jdbc_metadata_defaults: false

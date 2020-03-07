@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet author="shtylev_semen" id="create_basic_tables">
+        <comment>create common tables</comment>
+
+        <createTable tableName="tb_user">
+            <column name="id" type="serial" autoIncrement="true" remarks="">
+                <constraints nullable="false" primaryKey="true" />
+            </column>
+            <column name="username" type="varchar(255)" remarks="">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password" type="varchar(255)" remarks="">
+                <constraints nullable="false" />
+            </column>
+            <column name="first_name" type="varchar(255)" remarks="">
+                <constraints nullable="true" />
+            </column>
+            <column name="last_name" type="varchar(255)" remarks="" >
+                <constraints nullable="true" />
+            </column>
+            <column name="email" type="varchar(255)" remarks="">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="status" type="varchar(1)" remarks="D - DISABLED A - ACTIVE" defaultValue="A">
+                <constraints nullable="false" />
+            </column>
+            <column name="create_time" type="bigint" defaultValueComputed="${now}"
+                    remarks="">
+                <constraints nullable="false" />
+            </column>
+            <column name="last_modify_time" type="bigint" defaultValueComputed="${now}"
+                    remarks="">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="tb_role">
+            <column name="id" type="serial" autoIncrement="true" remarks="">
+                <constraints nullable="false" primaryKey="true" />
+            </column>
+            <column name="name" type="varchar(64)" remarks="">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="status" type="varchar(1)" remarks="D - DISABLED A - ACTIVE" defaultValue="A">
+                <constraints nullable="false" />
+            </column>
+            <column name="create_time" type="bigint" defaultValueComputed="${now}"
+                    remarks="">
+                <constraints nullable="false" />
+            </column>
+            <column name="last_modify_time" type="bigint" defaultValueComputed="${now}"
+                    remarks="">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="tb_user_role">
+            <column name="user_id" type="int" remarks="">
+                <constraints nullable="false" foreignKeyName="fk_user_role_user" references="tb_user(id)"/>
+            </column>
+            <column name="role_id" type="int" remarks="true">
+                <constraints nullable="false" foreignKeyName="fk_user_role_role" references="tb_role(id)"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="tb_user_role" columnNames="user_id, role_id" constraintName="pk_composite_user_role"/>
+
+    </changeSet>
+
+
+    <changeSet id="inser_basic_records" author="shtylev_semen">
+        <insert tableName="tb_user">
+            <column name="username">admin</column>
+            <column name="password">$2a$10$obBq7iGa/cdX07CSTj7XPeqFKPDBbKvc1giOjR69JBlSkcbCtj4S6</column>
+            <column name="first_name">Admin</column>
+            <column name="last_name">Admin</column>
+            <column name="email">admin@example.com</column>
+            <column name="status">A</column>
+        </insert>
+
+        <insert tableName="tb_role">
+            <column name="name">ROLE_USER</column>
+        </insert>
+        <insert tableName="tb_role">
+            <column name="name">ROLE_ADMIN</column>
+        </insert>
+
+        <insert tableName="tb_user_role">
+            <column name="user_id">1</column>
+            <column name="role_id">1</column>
+        </insert>
+
+        <insert tableName="tb_user_role">
+            <column name="user_id">1</column>
+            <column name="role_id">2</column>
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>
