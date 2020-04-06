@@ -1,0 +1,6 @@
+"id","username","password","first_name","last_name","email","status","create_time","last_modify_time"
+1,admin,$2a$10$obBq7iGa/cdX07CSTj7XPeqFKPDBbKvc1giOjR69JBlSkcbCtj4S6,Admin,Admin,admin@example.com,A,1583098990847,1583098990847
+2,usertest,$2a$12$IP5vnu0GXSBky2ZQv0yy.OBqJZIIQEpueOaGacD/AV0M.BSdXMrd6,usertest,usertest,usertest@mail.ru,A,1585749309928,1585749309928
+3,user123,$2a$12$Qotxv5FDXY9HaWnGk3V2kewC0oC8jB2tZeMyiL/0FjOHMyInGTDJS,Семён,Штылёв,semen223@yandex.ru,A,1586111320240,1586111320240
+4,semen,$2a$12$hkqZCKdPD86v9tp8N5iYm.qN0b2PisN2itHQW5MFG6EJsNKwblTNe,Семен,Штылёв,semen@yandex.ru,A,1586111409872,1586111409872
+5,test123,$2a$12$FQjobbVDulkHRD/L7C8B0uTaLdLaMmniDElJ7JGt4WpWL9Jxr9EfO,Семен,Штылёв,test@mail.ru,A,1586111723589,1586111723589
