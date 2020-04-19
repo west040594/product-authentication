@@ -32,8 +32,13 @@ public class UserRestController {
     private final UserService userService;
     private final RoleService roleService;
 
+    /**
+     * Авторизация пользователя по логину и паролю
+     * @param authRequest Структура которая содержит логин и пароль
+     * @return Структура со всей информацией о пользователе и токеном аутентификации
+     */
     @PostMapping("/signin")
-    @ApiOperation(value = "${UserController.signin}")
+    @ApiOperation(value = "${api.swagger.user.signin}", response = AuthenticationResponse.class)
     @ApiResponses(value = {
             @ApiResponse(code = 400, message = AuthenticationExceptionMessage.UNEXPECTED_ERROR_MSG),
             @ApiResponse(code = 422, message = AuthenticationExceptionMessage.INVALID_USERNAME_OR_PASSWORD_MSG)
@@ -46,24 +51,34 @@ public class UserRestController {
         return ResponseEntity.ok(new AuthenticationResponse(userResponse, token));
     }
 
+    /**
+     * Регистрация нового пользователя
+     * @param userDataRequest Структура которая содержит всю необходимую информация для создания нового пользователя
+     * @return Структура со всей информацией о пользователе и токеном аутентификации
+     */
     @PostMapping("/signup")
-    @ApiOperation(value = "${UserController.signup}")
+    @ApiOperation(value = "${api.swagger.user.signup}", response = AuthenticationResponse.class)
     @ApiResponses(value = {
             @ApiResponse(code = 400, message = AuthenticationExceptionMessage.UNEXPECTED_ERROR_MSG),
             @ApiResponse(code = 403, message = AuthenticationExceptionMessage.ACCESS_DENIED_MSG),
             @ApiResponse(code = 422, message = AuthenticationExceptionMessage.UNABLE_TO_PROCESS_DATA),
             @ApiResponse(code = 500, message = AuthenticationExceptionMessage.EXPIRED_OR_INVALID_JWT_TOKEN_MSG)
     })
-    public ResponseEntity<?> sigup(@ApiParam("Signup User") @RequestBody UserDataRequest userDataRequest) {
+    public ResponseEntity<?> signup(@ApiParam("Signup User") @RequestBody UserDataRequest userDataRequest) {
         String token = userService.signUp(userMapper.userDataRequestToUser(userDataRequest, roleService));
         User user = userService.search(userDataRequest.getUsername());
         UserResponse userResponse = userMapper.userToUserResponse(user);
         return ResponseEntity.ok(new AuthenticationResponse(userResponse, token));
     }
 
+    /**
+     * Удаление пользователя по его username. Данный метод может выполнить только пользователь с правами ROLE_ADMIN
+     * @param username Имя пользователя
+     * @return Строка информации о успешном удалении
+     */
     @DeleteMapping("/{username}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @ApiOperation(value = "${UserController.delete}")
+    @ApiOperation(value = "${api.swagger.user.delete}", response = String.class)
     @ApiResponses(value = {
             @ApiResponse(code = 400, message = AuthenticationExceptionMessage.UNEXPECTED_ERROR_MSG),
             @ApiResponse(code = 403, message = AuthenticationExceptionMessage.ACCESS_DENIED_MSG),
@@ -72,12 +87,17 @@ public class UserRestController {
     })
     public ResponseEntity<?> delete(@ApiParam("Username") @PathVariable String username) {
         userService.delete(username);
-        return ResponseEntity.ok(username);
+        return ResponseEntity.ok(String.format("Пользователь %s - удален", username));
     }
 
+    /**
+     * Получить полную информацию о пользователе по его username. Данный метод может выполнить только пользователь с правами ROLE_ADMIN
+     * @param username Имя пользователя
+     * @return Структура с детальной информацией о пользователе
+     */
     @GetMapping("/{username}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @ApiOperation(value = "${UserController.search}", response = UserResponse.class)
+    @ApiOperation(value = "${api.swagger.user.search}", response = UserResponse.class)
     @ApiResponses(value = {
             @ApiResponse(code = 400, message = AuthenticationExceptionMessage.UNEXPECTED_ERROR_MSG),
             @ApiResponse(code = 403, message = AuthenticationExceptionMessage.ACCESS_DENIED_MSG),
@@ -90,22 +110,30 @@ public class UserRestController {
     }
 
 
+    /**
+     * Получить информацию о своем аккаунте по HttpRequest. Запрос HttpRequest должен содрежать заголовок Authorization
+     * @return Структура с детальной информацией о пользователе
+     */
     @GetMapping("/me")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
-    @ApiOperation(value = "${UserController.me}", response = UserResponse.class)
+    @ApiOperation(value = "${api.swagger.user.me}", response = UserResponse.class)
     @ApiResponses(value = {
             @ApiResponse(code = 400, message = AuthenticationExceptionMessage.UNEXPECTED_ERROR_MSG),
             @ApiResponse(code = 403, message = AuthenticationExceptionMessage.ACCESS_DENIED_MSG),
             @ApiResponse(code = 500, message = AuthenticationExceptionMessage.EXPIRED_OR_INVALID_JWT_TOKEN_MSG)
     })
     public ResponseEntity<?> whoami(HttpServletRequest request) {
-        log.info("who am i run");
         UserResponse userResponse = userMapper.userToUserResponse(userService.whoami(request));
         return ResponseEntity.ok(userResponse);
     }
 
+    /**
+     * Получить информацию о своем аккаунте по токену авторазиции.
+     * @param token Токен авторизпции
+     * @return  Структура с детальной информацией о пользователе
+     */
     @GetMapping("/me/{token}")
-    @ApiOperation(value = "${UserController.me}", response = UserResponse.class)
+    @ApiOperation(value = "${api.swagger.user.token.me}", response = UserResponse.class)
     @ApiResponses(value = {
             @ApiResponse(code = 400, message = AuthenticationExceptionMessage.UNEXPECTED_ERROR_MSG),
             @ApiResponse(code = 403, message = AuthenticationExceptionMessage.ACCESS_DENIED_MSG),
@@ -116,9 +144,13 @@ public class UserRestController {
         return ResponseEntity.ok(userResponse);
     }
 
+    /**
+     * Обновить свою аутентификацию в системе
+     * @return Структура со всей информацией о пользователе и токеном аутентификации
+     */
     @GetMapping("/refresh")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
-    @ApiOperation(value = "${UserController.refresh}", response = AuthenticationResponse.class)
+    @ApiOperation(value = "${api.swagger.user.refresh}", response = AuthenticationResponse.class)
     @ApiResponses(value = {
             @ApiResponse(code = 403, message = AuthenticationExceptionMessage.ACCESS_DENIED_MSG),
             @ApiResponse(code = 404, message = AuthenticationExceptionMessage.USER_NOT_FOUND_MSG),
@@ -132,15 +164,22 @@ public class UserRestController {
     }
 
 
+    /**
+     * Проверка токена на валидность.
+     * Если данный токен был выдан данной системой и он не просрочен, то валидация токена считается успешной
+     * @param token Токен выданный при авторазиции
+     * @return True -  если данному токену сооствествует успешнаяя авторазиция в данный момент
+     */
+    @ApiOperation(value = "${api.swagger.user.token.validate}", response = Boolean.class)
+    @ApiResponses(value = {
+            @ApiResponse(code = 403, message = AuthenticationExceptionMessage.ACCESS_DENIED_MSG),
+            @ApiResponse(code = 404, message = AuthenticationExceptionMessage.USER_NOT_FOUND_MSG),
+            @ApiResponse(code = 500, message = AuthenticationExceptionMessage.EXPIRED_OR_INVALID_JWT_TOKEN_MSG)
+    })
     @GetMapping("/token/validate")
     public ResponseEntity<?> validateToken(@RequestParam String token) {
         boolean tokenIsValid = userService.tokeIsValid(token);
         return ResponseEntity.ok(tokenIsValid);
     }
 
-
-    @GetMapping("/test")
-    public ResponseEntity<String> test() {
-        return ResponseEntity.ok("Hello");
-    }
 }
